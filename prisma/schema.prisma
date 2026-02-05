@@ -1,0 +1,209 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////
+
+enum LectureType {
+  TH
+  PR
+}
+
+enum LectureStatus {
+  SCHEDULED
+  CANCELLED
+  HOLIDAY
+  EXTRA
+}
+
+enum ROLE {
+  STUDENT
+  ADMIN
+}
+
+//////////////////////////////////////////////////
+// CORE ENTITIES
+//////////////////////////////////////////////////
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  role     ROLE   @default(STUDENT)
+
+  branchId      String
+  divisionId    String
+  subDivisionId String
+  semester      Int
+  sapId         String @unique
+  rollNo        String @unique
+
+  createdAt DateTime @default(now())
+
+  attendances Attendance[]
+
+  branch   Branch    @relation(fields: [branchId], references: [id])
+  division Division  @relation(fields: [divisionId], references: [id])
+  sessions Session[]
+
+  @@index([branchId, divisionId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expiresAt    DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+//////////////////////////////////////////////////
+
+model Branch {
+  id       String @id @default(uuid())
+  name     String
+  capacity Int
+
+  divisions        Division[]
+  timetables       Timetable[]
+  users            User[]
+  lectureTemplates LectureTemplate[]
+}
+
+//////////////////////////////////////////////////
+
+model Division {
+  id       String @id @default(uuid())
+  name     String // D1, D2, etc
+  branchId String
+
+  branch Branch @relation(fields: [branchId], references: [id])
+  users  User[]
+
+  lectureTemplates LectureTemplate[]
+
+  @@unique([name, branchId])
+}
+
+//////////////////////////////////////////////////
+// ACADEMIC CALENDAR (GLOBAL)
+//////////////////////////////////////////////////
+
+model AcademicCalendar {
+  id        String   @id @default(uuid())
+  year      String // e.g. "2025-2026"
+  data      Json // full calendar JSON
+  createdAt DateTime @default(now())
+
+  @@unique([year])
+}
+
+//////////////////////////////////////////////////
+// TIMETABLE (STRUCTURE SOURCE)
+//////////////////////////////////////////////////
+
+model Timetable {
+  id       String @id @default(uuid())
+  branchId String
+  semester Int
+
+  effectiveFrom DateTime
+  data          Json
+
+  createdAt DateTime @default(now())
+
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@index([branchId, semester])
+}
+
+//////////////////////////////////////////////////
+// LECTURE TEMPLATE (STATIC / RECURRING)
+//////////////////////////////////////////////////
+
+model LectureTemplate {
+  id String @id @default(uuid())
+
+  branchId   String
+  divisionId String
+  semester   Int
+
+  subject     String
+  lectureType LectureType
+  batch       String? // D11 / D12 (nullable)
+  faculty     String?
+  room        String?
+
+  weekday   Int // 1 = Monday ... 7 = Sunday
+  startTime String // "08:00"
+  endTime   String // "09:00"
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  branch   Branch   @relation(fields: [branchId], references: [id])
+  division Division @relation(fields: [divisionId], references: [id])
+
+  lectureInstances LectureInstance[]
+
+  @@index([branchId, divisionId, semester, weekday])
+}
+
+//////////////////////////////////////////////////
+// LECTURE INSTANCE (DATE-SPECIFIC)
+//////////////////////////////////////////////////
+
+model LectureInstance {
+  id String @id @default(uuid())
+
+  lectureTemplateId String
+  date              DateTime
+
+  status           LectureStatus @default(SCHEDULED)
+  isAttendanceOpen Boolean       @default(true)
+
+  createdAt DateTime @default(now())
+
+  lectureTemplate LectureTemplate @relation(fields: [lectureTemplateId], references: [id])
+  attendances     Attendance[]
+
+  @@unique([lectureTemplateId, date])
+  @@index([date])
+}
+
+//////////////////////////////////////////////////
+// ATTENDANCE (USER ACTION)
+//////////////////////////////////////////////////
+
+model Attendance {
+  id String @id @default(uuid())
+
+  userId            String
+  lectureInstanceId String
+
+  attended Boolean // true = present, false = bunked
+
+  markedAt DateTime @default(now())
+
+  user            User            @relation(fields: [userId], references: [id])
+  lectureInstance LectureInstance @relation(fields: [lectureInstanceId], references: [id])
+
+  @@unique([userId, lectureInstanceId])
+  @@index([userId])
+}

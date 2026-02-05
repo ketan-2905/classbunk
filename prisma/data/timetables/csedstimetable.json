@@ -1,0 +1,554 @@
+{
+  "timetableMetadata": {
+    "institution": "Shri Vile Parle Kelavani Mandal's Dwarkadas J. Sanghvi College of Engineering",
+    "department": "Department of Computer Science and Engineering (Data Science)",
+    "class": "TY (D1)",
+    "semester": "VI",
+    "academicYear": "2025-2026"
+  },
+  "timeSlotDefinitions": {
+    "1": { "start": "08:00", "end": "09:00" },
+    "2": { "start": "09:00", "end": "10:00" },
+    "3": { "start": "10:00", "end": "11:00" },
+    "4": { "start": "11:00", "end": "12:00" },
+    "5": { "start": "12:00", "end": "13:00" },
+    "6": { "start": "13:00", "end": "14:00" },
+    "7": { "start": "14:00", "end": "15:00" },
+    "8": { "start": "15:00", "end": "16:00" },
+    "9": { "start": "16:00", "end": "17:00" },
+    "10": { "start": "17:00", "end": "18:00" }
+  },
+  "weeklySchedule": {
+    "Monday": [
+      {
+        "periodId": 1,
+        "sessions": [
+          {
+            "subject": "ADSEL",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "MAA",
+            "room": "L4"
+          },
+          {
+            "subject": "ML-III",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PSJ",
+            "room": "L2"
+          }
+        ]
+      },
+      {
+        "periodId": 2,
+        "sessions": [
+          {
+            "subject": "ADSEL",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "MAA",
+            "room": "L4"
+          },
+          {
+            "subject": "ML-III",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PSJ",
+            "room": "L2"
+          }
+        ]
+      },
+      {
+        "periodId": 3,
+        "sessions": [
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PJ",
+            "room": "L4"
+          },
+          {
+            "subject": "NLTP",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PSJ",
+            "room": "L3"
+          }
+        ]
+      },
+      {
+        "periodId": 4,
+        "sessions": [
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PJ",
+            "room": "L4"
+          },
+          {
+            "subject": "NLTP",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PSJ",
+            "room": "L3"
+          }
+        ]
+      },
+      {
+        "periodId": 5,
+        "type": "BREAK"
+      },
+      {
+        "periodId": 6,
+        "sessions": [
+          { "subject": "ML-III", "type": "TH", "faculty": "PSJ", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 7,
+        "sessions": [
+          { "subject": "CV", "type": "TH", "faculty": "PJ", "room": "53" },
+          { "subject": "AGT", "type": "TH", "faculty": "SM", "room": "L4" }
+        ]
+      },
+      {
+        "periodId": 8,
+        "sessions": [
+          {
+            "subject": "TSA",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PP",
+            "room": "L4"
+          }
+        ]
+      },
+      {
+        "periodId": 9,
+        "sessions": [
+          {
+            "subject": "TSA",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PP",
+            "room": "L4"
+          }
+        ]
+      }
+    ],
+    "Tuesday": [
+      {
+        "periodId": 1,
+        "sessions": [
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PV",
+            "room": "L3"
+          },
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PJ",
+            "room": "L1"
+          },
+          {
+            "subject": "AGT",
+            "type": "PR",
+            "batch": "D1+D2",
+            "faculty": "SM",
+            "room": "L2"
+          }
+        ]
+      },
+      {
+        "periodId": 2,
+        "sessions": [
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PV",
+            "room": "L3"
+          },
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PJ",
+            "room": "L1"
+          },
+          {
+            "subject": "AGT",
+            "type": "PR",
+            "batch": "D1+D2",
+            "faculty": "SM",
+            "room": "L2"
+          }
+        ]
+      },
+      {
+        "periodId": 3,
+        "sessions": [
+          { "subject": "ML-III", "type": "TH", "faculty": "PSJ", "room": "51" }
+        ]
+      },
+      {
+        "periodId": 4,
+        "sessions": [
+          { "subject": "TSA", "type": "TH", "faculty": "SSM", "room": "52" },
+          { "subject": "AAIA", "type": "TH", "faculty": "NP", "room": "51" }
+        ]
+      },
+      {
+        "periodId": 5,
+        "sessions": [
+          { "subject": "CV", "type": "TH", "faculty": "PJ", "room": "51" },
+          { "subject": "AGT", "type": "TH", "faculty": "SM", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 6,
+        "sessions": [
+          { "subject": "ML-III", "type": "TH", "faculty": "PSJ", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 9,
+        "sessions": [{ "subject": "QPM", "type": "TH", "faculty": "SF" }]
+      },
+      {
+        "periodId": 10,
+        "sessions": [{ "subject": "QPM", "type": "TH", "faculty": "SF" }]
+      }
+    ],
+    "Wednesday": [
+      {
+        "periodId": 1,
+        "sessions": [
+          {
+            "subject": "NLTP",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "KD",
+            "room": "L2"
+          },
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "AR",
+            "room": "L1"
+          }
+        ]
+      },
+      {
+        "periodId": 2,
+        "sessions": [
+          {
+            "subject": "NLTP",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "KD",
+            "room": "L2"
+          },
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "AR",
+            "room": "L1"
+          }
+        ]
+      },
+      {
+        "periodId": 3,
+        "sessions": [
+          { "subject": "CV", "type": "TH", "faculty": "PJ", "room": "51" },
+          { "subject": "AGT", "type": "TH", "faculty": "SM", "room": "52" }
+        ]
+      },
+      {
+        "periodId": 4,
+        "type": "BREAK"
+      },
+      {
+        "periodId": 5,
+        "sessions": [
+          {
+            "subject": "AAIA",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "NP",
+            "room": "L2"
+          },
+          {
+            "subject": "TSA",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PP",
+            "room": "L1"
+          }
+        ]
+      },
+      {
+        "periodId": 6,
+        "sessions": [
+          {
+            "subject": "AAIA",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "NP",
+            "room": "L2"
+          },
+          {
+            "subject": "TSA",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PP",
+            "room": "L1"
+          }
+        ]
+      },
+      {
+        "periodId": 9,
+        "sessions": [{ "subject": "QPM", "type": "TH", "faculty": "SF" }]
+      }
+    ],
+    "Thursday": [
+      {
+        "periodId": 1,
+        "sessions": [
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PV",
+            "room": "L3"
+          },
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PJ",
+            "room": "L1"
+          },
+          {
+            "subject": "AGT",
+            "type": "PR",
+            "batch": "D1+D2",
+            "faculty": "SM",
+            "room": "L2"
+          }
+        ]
+      },
+      {
+        "periodId": 2,
+        "sessions": [
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PV",
+            "room": "L3"
+          },
+          {
+            "subject": "CV",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "PJ",
+            "room": "L1"
+          },
+          {
+            "subject": "AGT",
+            "type": "PR",
+            "batch": "D1+D2",
+            "faculty": "SM",
+            "room": "L2"
+          }
+        ]
+      },
+      {
+        "periodId": 3,
+        "sessions": [
+          { "subject": "ML-III", "type": "TH", "faculty": "PSJ", "room": "51" }
+        ]
+      },
+      {
+        "periodId": 4,
+        "type": "BREAK"
+      },
+      {
+        "periodId": 5,
+        "sessions": [
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PJ",
+            "room": "L1"
+          },
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "AR",
+            "room": "L4"
+          }
+        ]
+      },
+
+      {
+        "periodId": 6,
+        "sessions": [
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "PJ",
+            "room": "L1"
+          },
+          {
+            "subject": "ASL",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "AR",
+            "room": "L4"
+          }
+        ]
+      },
+      {
+        "periodId": 7,
+        "sessions": [
+          { "subject": "NLTP", "type": "TH", "faculty": "KD", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 8,
+        "sessions": [
+          { "subject": "TSA", "type": "TH", "faculty": "SSM", "room": "52" },
+          { "subject": "AAIA", "type": "TH", "faculty": "NP", "room": "51" }
+        ]
+      }
+    ],
+    "Friday": [
+      {
+        "periodId": 1,
+        "sessions": [
+          { "subject": "TSA", "type": "TH", "faculty": "SSM", "room": "51" },
+          { "subject": "AAIA", "type": "TH", "faculty": "NP", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 2,
+        "sessions": [
+          { "subject": "NLTP", "type": "TH", "faculty": "KD", "room": "51" }
+        ]
+      },
+      {
+        "periodId": 3,
+        "sessions": [
+          { "subject": "CV", "type": "TH", "faculty": "PJ", "room": "51" },
+          { "subject": "AGT", "type": "TH", "faculty": "SM", "room": "L4" }
+        ]
+      },
+      {
+        "periodId": 4,
+        "type": "BREAK"
+      },
+      {
+        "periodId": 5,
+        "sessions": [
+          { "subject": "EVS", "type": "TH", "faculty": "AG/SS", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 6,
+        "sessions": [
+          { "subject": "NLTP", "type": "TH", "faculty": "KD", "room": "53" }
+        ]
+      },
+      {
+        "periodId": 7,
+        "sessions": [
+          {
+            "subject": "QPM",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "AS",
+            "room": "L3"
+          },
+          {
+            "subject": "QPM",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "AVG",
+            "room": "BCEL"
+          }
+        ]
+      },
+      {
+        "periodId": 8,
+        "sessions": [
+          {
+            "subject": "QPM",
+            "type": "PR",
+            "batch": "D11",
+            "faculty": "AS",
+            "room": "L3"
+          },
+          {
+            "subject": "QPM",
+            "type": "PR",
+            "batch": "D12",
+            "faculty": "AVG",
+            "room": "BCEL"
+          }
+        ]
+      }
+    ],
+    "Saturday": {
+      "note": "Innovative Product Development (IPD) Research/ Project Work"
+    }
+  },
+  "legend": {
+    "subjects": {
+      "ML-III": "Machine Learning - III (Reinforcement Learning)",
+      "NLTP": "Natural Language Text Processing",
+      "ASL": "Advanced Statistics Laboratory",
+      "ADSEL": "Applied Data Science Engineering Laboratory",
+      "TSA": "Time Series Analysis",
+      "CV": "Computer Vision",
+      "AGT": "Applied Game Theory",
+      "AAIA": "Analysis of AI Algorithms",
+      "EVS": "Environmental Studies",
+      "QPM": "Quantitative Portfolio Management"
+    },
+    "faculty": {
+      "PSJ/AVG": "Pradnya Joshi/ Ashwini Garole",
+      "KD/PS": "Kanchan Dabre/ Preeti Satao",
+      "PJ/AR": "Dr. Poonam Jadhav/ Aditi Raut",
+      "AS/MAA": "Adil Shaikh/ Mrudul Arkadi",
+      "SSM/PP": "Shraddha More/ Priya Parate",
+      "NP": "Dr. Namita Pulgam",
+      "PJ/PV": "Dr. Poonam Jadhav/ Pooja Vartak",
+      "SM": "Shruti Mathur",
+      "AG/SS": "Dr. Ajitkumar Gudekar/ Shashikant Sankhe",
+      "SF/AS/AVG": "Sonal Foss/ Adil Shaikh/ Ashwini Garole"
+    },
+    "rooms": {
+      "CR 51": "5th Floor (CSE-DS Department)",
+      "CR 52": "5th Floor (CSE-DS Department)",
+      "CR 53": "5th Floor (CSE-DS Department)",
+      "L1": "Data Analytics Lab - 5th Floor",
+      "L2": "Machine Learning Lab - 5th Floor",
+      "L3": "Computer Vision Lab - 5th Floor",
+      "L4": "Big Data Engineering Lab - 5th Floor",
+      "BCEL": "Basic Communication Lab - 4th Floor"
+    }
+  }
+}

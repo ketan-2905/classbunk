@@ -1,0 +1,259 @@
+{
+  "academicCalendar": {
+    "year": "2025 - 2026",
+    "semester": "EVEN Semester",
+    "programs": "B.Tech. (Sem IV, VI & VIII)",
+    "months": [
+      {
+        "month": "January",
+        "year": 2026,
+        "events": [
+          {
+            "date": 26,
+            "day": "Monday",
+            "activity": "Republic Day",
+            "type": "Holiday"
+          },
+          {
+            "date": 27,
+            "day": "Tuesday",
+            "activity": "COC",
+            "description": "Commencement of Classes"
+          }
+        ]
+      },
+      {
+        "month": "February",
+        "year": 2026,
+        "events": [
+          {
+            "date": 15,
+            "day": "Sunday",
+            "activity": "Mahashivratri",
+            "type": "Holiday"
+          },
+          {
+            "date": 19,
+            "day": "Thursday",
+            "activity": "Chhatrapati Shivaji Maharaj Jayanti",
+            "type": "Holiday"
+          },
+          {
+            "date": 28,
+            "day": "Friday",
+            "activity": "SD",
+            "description": "Sports Day"
+          }
+        ]
+      },
+      {
+        "month": "March",
+        "year": 2026,
+        "events": [
+          {
+            "date": 2,
+            "day": "Monday",
+            "activity": "DL",
+            "description": "Display of Attendance List"
+          },
+          {
+            "date": 3,
+            "day": "Tuesday",
+            "activity": "Dhulivandan",
+            "type": "Holiday"
+          },
+          {
+            "dateRange": "5",
+            "activity": "TT1",
+            "description": "Term Test 1"
+          },
+          {
+            "dateRange": "6",
+            "activity": "TT1",
+            "description": "Term Test 1"
+          },
+          {
+            "dateRange": "7",
+            "activity": "TT1",
+            "description": "Term Test 1"
+          },
+          {
+            "dateRange": "16",
+            "activity": "TRINITY",
+            "type": "Event"
+          },
+          {
+            "dateRange": "17",
+            "activity": "TRINITY",
+            "type": "Event"
+          },
+          {
+            "dateRange": "18",
+            "activity": "TRINITY",
+            "type": "Event"
+          },
+          {
+            "date": 19,
+            "day": "Thursday",
+            "activity": "Gudi Padwa",
+            "type": "Holiday"
+          },
+          {
+            "date": 21,
+            "day": "Saturday",
+            "activity": "Ramzan Id",
+            "type": "Holiday"
+          },
+          {
+            "date": 26,
+            "day": "Thursday",
+            "activity": "Ram Navmi",
+            "type": "Holiday"
+          },
+          {
+            "date": 31,
+            "day": "Tuesday",
+            "activity": "Mahavir Jayanti",
+            "type": "Holiday"
+          }
+        ]
+      },
+      {
+        "month": "April",
+        "year": 2026,
+        "events": [
+          {
+            "date": 2,
+            "day": "Thursday",
+            "activity": "DL",
+            "description": "Display of Attendance List"
+          },
+          {
+            "date": 3,
+            "day": "Friday",
+            "activity": "Good Friday",
+            "type": "Holiday"
+          },
+          {
+            "date": 13,
+            "day": "Monday",
+            "activity": "AD",
+            "description": "Annual Day"
+          },
+          {
+            "date": 14,
+            "day": "Tuesday",
+            "activity": "Dr. Ambedkar Jayanti",
+            "type": "Holiday"
+          },
+          {
+            "dateRange": "27",
+            "activity": "TT2",
+            "description": "Term Test 2"
+          },{
+            "dateRange": "28",
+            "activity": "TT2",
+            "description": "Term Test 2"
+          },{
+            "dateRange": "29",
+            "activity": "TT2",
+            "description": "Term Test 2"
+          }
+        ]
+      },
+      {
+        "month": "May",
+        "year": 2026,
+        "events": [
+          {
+            "date": 1,
+            "day": "Friday",
+            "activity": "Maharashtra Day",
+            "type": "Holiday"
+          },
+          {
+            "date": 11,
+            "day": "Monday",
+            "activity": "IW",
+            "description": "Improvement Week"
+          },
+          {
+            "date": 12,
+            "day": "Tuesday",
+            "activity": "Buddha Purnima",
+            "type": "Holiday"
+          },
+          {
+            "date": 15,
+            "day": "Friday",
+            "activity": "TWS, FDL",
+            "description": "Term Work Submission, Final Defaulter List"
+          },
+          {
+            "date": 16,
+            "day": "Saturday",
+            "activity": "TE",
+            "description": "Term End"
+          },
+          {
+            "date": 18,
+            "day": "Monday",
+            "activity": "ESE (S)",
+            "description": "End Sem Exam Start"
+          },
+          {
+            "date": 27,
+            "day": "Wednesday",
+            "activity": "Bakri Id",
+            "type": "Holiday"
+          }
+        ]
+      },
+      {
+        "month": "June",
+        "year": 2026,
+        "events": [
+          {
+            "date": 6,
+            "day": "Saturday",
+            "activity": "ESE (E)",
+            "description": "End Sem Exam End"
+          },
+          {
+            "date": 7,
+            "day": "Sunday",
+            "activity": "O & P (S)",
+            "description": "Oral & Practical Exam Start"
+          },
+          {
+            "date": 18,
+            "day": "Thursday",
+            "activity": "O & P (E)",
+            "description": "Oral & Practical Exam End"
+          },
+          {
+            "date": 26,
+            "day": "Friday",
+            "activity": "Muharram",
+            "type": "Holiday"
+          }
+        ]
+      }
+    ],
+    "legend": {
+      "COC": "Commencement of Classes",
+      "DL": "Display of Attendance List",
+      "SD": "Sports Day",
+      "TT": "Term Test",
+      "AD": "Annual Day",
+      "IW": "Improvement Week",
+      "TWS": "Term Work Submission",
+      "FDL": "Final Defaulter List",
+      "TE": "Term End",
+      "O & P (S)": "Oral & Practical Exam Start",
+      "O & P (E)": "Oral & Practical Exam End",
+      "ESE (S)": "End Sem Exam Start",
+      "ESE (E)": "End Sem Exam End"
+    }
+  }
+}
