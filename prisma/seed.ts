@@ -16,6 +16,8 @@ const csedstimetableData = JSON.parse(
     )
 );
 
+const SEMESTER = 6
+
 async function main() {
     /* ===============================
        ACADEMIC CALENDAR
@@ -84,7 +86,7 @@ async function main() {
                 await prisma.timetable.create({
                     data: {
                         branchId: createdBranch.id,
-                        semester: 6,
+                        semester: SEMESTER,
                         effectiveFrom: new Date("2026-01-27"),
                         data: csedstimetableData as any,
                     },
@@ -95,6 +97,22 @@ async function main() {
                 const dayMap: Record<string, number> = { "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 7 };
                 const timeSlots = csedstimetableData.timeSlotDefinitions as Record<string, { start: string, end: string }>;
                 const schedule = csedstimetableData.weeklySchedule as Record<string, any[] | { note: string }>;
+                const elective = csedstimetableData.elective as Record<string, string>[];
+
+                const rows = elective.map(group => {
+                    const [first, second] = Object.keys(group);
+
+                    return {
+                        semester: SEMESTER,
+                        firstElectiveName: first,
+                        secondElectiveName: second,
+                        branchId: createdBranch.id
+                    };
+                });
+
+                await prisma.elective.createMany({
+                    data: rows
+                });
 
                 for (const [dayName, daySchedule] of Object.entries(schedule)) {
                     if (!Array.isArray(daySchedule)) continue; // Skip objects like Saturday note
@@ -154,5 +172,4 @@ main()
     .finally(async () => {
         await prisma.$disconnect();
     });
-
 

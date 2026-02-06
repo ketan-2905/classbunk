@@ -1,48 +1,50 @@
-import prisma from "@/lib/prisma";
-import bcrypt from "bcrypt";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-export async function POST(req: Request) {
-    const { email, password } = await req.json();
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
+import { cookies } from 'next/headers';
 
-    const user = await prisma.user.findUnique({
-        where: {
-            email: email,
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_key_change_me');
+
+export async function POST(request: Request) {
+    try {
+        const { identifier, password } = await request.json();
+
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { sapId: identifier }
+                ]
+            }
+        });
+
+        if (!user) {
+            return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
         }
-    })
 
-    if (!user) {
-        return NextResponse.json({ message: "Invalid credentials" }, { status: 404 })
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-        return NextResponse.json({ message: "Invalid credentials" }, { status: 401 })
-    }
-
-    const sessionToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-
-    const session = await prisma.session.create({
-        data: {
-            sessionToken,
-            expiresAt,
-            userId: user.id
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+            return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
         }
-    })
 
-    const cookieStore = await cookies()
+        const token = await new SignJWT({ userId: user.id, role: user.role })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setExpirationTime('7d')
+            .sign(JWT_SECRET);
 
-    cookieStore.set({
-        name: "session",
-        value: sessionToken,
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        expires: expiresAt
-    })
+        // Optional: Set cookie here too if called directly
+        const cookieStore = await cookies();
+        cookieStore.set('session', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 7,
+            path: '/'
+        });
 
-    return NextResponse.json({ message: "Login successful", session: session }, { status: 200 })
+        return NextResponse.json({ success: true, token });
+    } catch (error) {
+        console.error("Login API Error:", error);
+        return NextResponse.json({ success: false, error: "Login failed" }, { status: 500 });
+    }
 }

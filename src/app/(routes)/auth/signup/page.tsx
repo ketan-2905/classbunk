@@ -22,6 +22,7 @@ export default function SignupPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [serverError, setServerError] = useState('');
+    const [electives, setElectives] = useState<{ slot1: string[], slot2: string[] }>({ slot1: [], slot2: [] });
 
     // Form Setup
     const {
@@ -40,10 +41,33 @@ export default function SignupPage() {
             sapId: '',
             rollNo: '',
             subDivisionId: '',
+            electiveChoice1: '',
+            electiveChoice2: ''
         },
     });
 
     const selectedBranchId = watch('branchId');
+    const selectedSemester = watch('semester');
+
+    // Fetch Electives
+    useEffect(() => {
+        if (selectedBranchId && selectedSemester) {
+            const fetchElectives = async () => {
+                try {
+                    const res = await fetch(`/api/electives?branchId=${selectedBranchId}&semester=${selectedSemester}`);
+                    const json = await res.json();
+                    if (json.success) {
+                        setElectives(json.data);
+                    } else {
+                        setElectives({ slot1: [], slot2: [] });
+                    }
+                } catch (e) { console.error(e); }
+            };
+            fetchElectives();
+        } else {
+            setElectives({ slot1: [], slot2: [] });
+        }
+    }, [selectedBranchId, selectedSemester]);
 
     // Fetch Branches on Mount
     useEffect(() => {
@@ -263,6 +287,54 @@ export default function SignupPage() {
                             {errors.subDivisionId && <p className="text-xs text-red-400 ml-1">{errors.subDivisionId.message}</p>}
                         </div>
                     </div>
+
+                    {/* Electives Row (Dynamic) */}
+                    {(electives.slot1.length > 0 || electives.slot2.length > 0) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                            {electives.slot1.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <label className="text-xs uppercase tracking-wider text-zinc-500 font-semibold ml-1">Elective I</label>
+                                    <div className="relative">
+                                        <select
+                                            {...register('electiveChoice1', { required: 'Elective 1 Required' })}
+                                            className="w-full appearance-none bg-zinc-950/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all font-medium"
+                                        >
+                                            <option value="" className="bg-zinc-900 text-zinc-500">Select Subject</option>
+                                            {electives.slot1.map((s, i) => (
+                                                <option key={i} value={s} className="bg-zinc-900">{s}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
+                                            <ChevronRight className="w-4 h-4 rotate-90" />
+                                        </div>
+                                    </div>
+                                    {errors.electiveChoice1 && <p className="text-xs text-red-400 ml-1">{errors.electiveChoice1.message as string}</p>}
+                                </div>
+                            )}
+
+                            {electives.slot2.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <label className="text-xs uppercase tracking-wider text-zinc-500 font-semibold ml-1">Elective II</label>
+                                    <div className="relative">
+                                        <select
+                                            {...register('electiveChoice2', { required: 'Elective 2 Required' })}
+                                            className="w-full appearance-none bg-zinc-950/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all font-medium"
+                                        >
+                                            <option value="" className="bg-zinc-900 text-zinc-500">Select Subject</option>
+                                            {electives.slot2.map((s, i) => (
+                                                <option key={i} value={s} className="bg-zinc-900">{s}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
+                                            <ChevronRight className="w-4 h-4 rotate-90" />
+                                        </div>
+                                    </div>
+                                    {errors.electiveChoice2 && <p className="text-xs text-red-400 ml-1">{errors.electiveChoice2.message as string}</p>}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
 
                     <button
                         type="submit"

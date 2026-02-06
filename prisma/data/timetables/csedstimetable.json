@@ -143,25 +143,18 @@
         "periodId": 1,
         "sessions": [
           {
-            "subject": "CV",
+            "subject": "ML-III",
             "type": "PR",
             "batch": "D11",
-            "faculty": "PV",
+            "faculty": "AVG",
             "room": "L3"
           },
           {
-            "subject": "CV",
+            "subject": "ADSEL",
             "type": "PR",
             "batch": "D12",
-            "faculty": "PJ",
-            "room": "L1"
-          },
-          {
-            "subject": "AGT",
-            "type": "PR",
-            "batch": "D1+D2",
-            "faculty": "SM",
-            "room": "L2"
+            "faculty": "AS",
+            "room": "L4"
           }
         ]
       },
@@ -169,33 +162,24 @@
         "periodId": 2,
         "sessions": [
           {
-            "subject": "CV",
+            "subject": "ML-III",
             "type": "PR",
             "batch": "D11",
-            "faculty": "PV",
+            "faculty": "AVG",
             "room": "L3"
           },
           {
-            "subject": "CV",
+            "subject": "ADSEL",
             "type": "PR",
             "batch": "D12",
-            "faculty": "PJ",
-            "room": "L1"
-          },
-          {
-            "subject": "AGT",
-            "type": "PR",
-            "batch": "D1+D2",
-            "faculty": "SM",
-            "room": "L2"
+            "faculty": "AS",
+            "room": "L4"
           }
         ]
       },
       {
         "periodId": 3,
-        "sessions": [
-          { "subject": "ML-III", "type": "TH", "faculty": "PSJ", "room": "51" }
-        ]
+        "type": "BREAK"
       },
       {
         "periodId": 4,
@@ -550,5 +534,7 @@
       "L4": "Big Data Engineering Lab - 5th Floor",
       "BCEL": "Basic Communication Lab - 4th Floor"
     }
-  }
+  }, "elective":[{ "TSA": "Time Series Analysis",
+      "AAIA": "Analysis of AI Algorithms"},{"CV": "Computer Vision",
+      "AGT": "Applied Game Theory"}]
 }

@@ -1,73 +1,67 @@
-import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import { cookies } from "next/headers";
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
+import { cookies } from 'next/headers';
 
-export async function POST(req: Request) {
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_key_change_me');
 
-    const { name, email, password, branchId, semester, division, sapId, rollNo, subDivisionId } = await req.json();
+export async function POST(request: Request) {
+    try {
+        const formData = await request.json();
+        const {
+            name, email, password, branchId, divisionId, semester, sapId, rollNo, subDivisionId,
+            electiveChoice1, electiveChoice2
+        } = formData;
 
-    const existingUser = await prisma.user.findFirst({
-        where: {
-            OR: [{ email },
-            { sapId },
-            { rollNo }]
-        }
-    })
+        // Check exists
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [{ email }, { sapId }, { rollNo }]
+            }
+        });
 
-    if (existingUser) {
-        if (existingUser.email === email) {
-            return NextResponse.json({ message: "User already With email" }, { status: 400 })
+        if (existingUser) {
+            if (existingUser.email === email) return NextResponse.json({ success: false, error: "Email already registered" }, { status: 400 });
+            if (existingUser.sapId === sapId) return NextResponse.json({ success: false, error: "SAP ID already registered" }, { status: 400 });
+            if (existingUser.rollNo === rollNo) return NextResponse.json({ success: false, error: "Roll Number already registered" }, { status: 400 });
         }
-        if (existingUser.sapId === sapId) {
-            return NextResponse.json({ message: "User already With sapId" }, { status: 400 })
-        }
-        if (existingUser.rollNo === rollNo) {
-            return NextResponse.json({ message: "User already With rollNo" }, { status: 400 })
-        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                branchId,
+                divisionId,
+                semester: parseInt(semester),
+                sapId,
+                rollNo,
+                subDivisionId,
+                electiveChoice1,
+                electiveChoice2
+            }
+        });
+
+        const token = await new SignJWT({ userId: user.id, role: user.role })
+            .setProtectedHeader({ alg: 'HS256' })
+            .setExpirationTime('7d')
+            .sign(JWT_SECRET);
+
+        const cookieStore = await cookies();
+        cookieStore.set('session', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 7,
+            path: '/'
+        });
+
+        return NextResponse.json({ success: true, token });
+
+    } catch (error) {
+        console.error("Signup API Error:", error);
+        return NextResponse.json({ success: false, error: "Signup failed" }, { status: 500 });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-
-    const newuser = await prisma.user.create({
-        data: {
-            name,
-            email,
-            password: hashedPassword,
-            branchId,
-            semester,
-            divisionId: division,
-            sapId,
-            rollNo,
-            subDivisionId
-        }
-    })
-
-    const sessionToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-
-    const session = await prisma.session.create({
-        data: {
-            sessionToken,
-            expiresAt,
-            userId: newuser.id
-        }
-    })
-
-    const cookieStore = await cookies()
-
-    cookieStore.set({
-        name: "session",
-        value: sessionToken,
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        expires: expiresAt
-    })
-
-    return NextResponse.json({ message: "User created successfully" }, { status: 201 })
-
-
 }

@@ -21,6 +21,25 @@ export async function syncUserSchedule(userId: string) {
     const today = new Date();
     const loopLimit = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 2));
 
+    // OPTIMIZATION: Incremental Sync
+    const lastAttendance = await prisma.attendance.findFirst({
+        where: { userId: user.id },
+        include: { lectureInstance: true },
+        orderBy: { lectureInstance: { date: 'desc' } }
+    });
+
+    let currentDate = new Date(semStartDate);
+
+    if (lastAttendance) {
+        const lastDate = new Date(lastAttendance.lectureInstance.date);
+        const lastDateUtc = new Date(Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate()));
+
+        if (lastDateUtc >= loopLimit) {
+            return { success: true };
+        }
+        currentDate = lastDateUtc;
+    }
+
 
     // Holidays
     const calendar = await prisma.academicCalendar.findFirst({ where: { year: "2025 - 2026" } });
@@ -50,19 +69,42 @@ export async function syncUserSchedule(userId: string) {
         }
     });
 
-    // Valid Templates for User (Batch Check)
-    const validTemplates = allTemplates.filter(tmpl => {
-        if (!tmpl.batch) return true; // Common
-        return tmpl.batch.endsWith(user.subDivisionId); // "D11" matches "1"
+    // Elective Analysis
+    const electiveSubjects = await prisma.elective.findMany({
+        where: { branchId: user.branchId, semester: user.semester }
+    });
+    const allElectiveNames = new Set<string>();
+    electiveSubjects.forEach(e => {
+        if (e.firstElectiveName) allElectiveNames.add(e.firstElectiveName);
+        if (e.secondElectiveName) allElectiveNames.add(e.secondElectiveName);
     });
 
-    console.log(`SYNC DEBUG: User ${user.subDivisionId}. Found ${allTemplates.length} total tmpl, ${validTemplates.length} matches.`);
+    console.log("SYNC DEBUG: Known Electives:", Array.from(allElectiveNames));
+    console.log("SYNC DEBUG: User Choices:", user.electiveChoice1, user.electiveChoice2);
+
+    // Valid Templates for User (Batch Check + Elective Check)
+    const validTemplates = allTemplates.filter(tmpl => {
+        // 1. Batch Check
+        if (tmpl.batch && !tmpl.batch.endsWith(user.subDivisionId)) return false;
+
+        // 2. Elective Check
+        if (allElectiveNames.has(tmpl.subject)) {
+            // It is an elective subject. User must have chosen it.
+            const isUserChoice = tmpl.subject === user.electiveChoice1 || tmpl.subject === user.electiveChoice2;
+            return isUserChoice;
+        }
+
+        return true; // Core subject
+    });
+
+    console.log(`SYNC DEBUG: User ${user.subDivisionId}. Found ${allTemplates.length} total tmpl, ${validTemplates.length} valid matches.`);
+
 
     // Generate Expected Instances
     const instancesToCreate: { lectureTemplateId: string; date: Date; status: LectureStatus }[] = [];
 
     // Iterate Dates
-    const currentDate = new Date(semStartDate);
+
     let loops = 0;
     while (currentDate <= loopLimit && loops < 365) {
         loops++;
