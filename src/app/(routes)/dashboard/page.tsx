@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     RefreshCw, CheckCircle, XCircle, Clock,
     AlertTriangle, BookOpen, GraduationCap, Calendar, History, Info,
@@ -27,6 +27,8 @@ export default function DashboardPage() {
             const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             const res = await getDashboardData(todayStr);
             if (res.success) {
+                console.log("Dashboard Data", res.data);
+
                 setData(res.data);
             } else if (res.error === "User not found") {
                 router.push('/auth/login');
@@ -93,6 +95,17 @@ export default function DashboardPage() {
         await apiClient.post('/logout');
         router.push('/auth/login');
     };
+
+    const currentMap = useMemo(() => {
+        const map: Record<string, number> = {};
+
+        data?.rangeSubjectStats?.['current']?.forEach((s: any) => {
+            const key = `${s.title}-${s.type}`;
+            map[key] = s.total;
+        });
+
+        return map;
+    }, [data?.rangeSubjectStats]);
 
     if (loading) {
         // ... loading state ...
@@ -324,7 +337,7 @@ export default function DashboardPage() {
                                         const lag = subj.mustAttend;
                                         const isCritical = lag > 0;
                                         const isUnrecoverable = isCritical && statView !== 'current';
-
+                                        const currentToatal = currentMap[`${subj.title}-${subj.type}`] || 0;
                                         return (
                                             <div key={`${subj.title}-${subj.type}`} className={`p-3 rounded-xl transition-all group border ${isCritical ? 'bg-rose-500/10 border-rose-500/30' : 'border-transparent hover:bg-white/5'}`}>
                                                 <div className="flex justify-between items-center mb-2">
@@ -345,7 +358,7 @@ export default function DashboardPage() {
                                                     />
                                                 </div>
                                                 <div className="flex justify-between items-center text-[10px] text-zinc-400">
-                                                    <span>{subj.present}/{subj.total}</span>
+                                                    <span>{subj.present}/C:({currentToatal}){" "}T:{subj.total}</span>
                                                     {subj.safeBunks > 0 && <span className="text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded">Safe: {subj.safeBunks}</span>}
                                                     {isCritical && (
                                                         <div className={`flex items-center gap-1.5 font-bold px-2 py-0.5 rounded ${isUnrecoverable ? 'bg-rose-500 text-white shadow-lg animate-pulse' : 'bg-rose-500/20 text-rose-300'}`}>

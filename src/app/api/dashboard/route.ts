@@ -78,7 +78,12 @@ export async function GET(request: Request) {
                     const type = a.lectureInstance.lectureTemplate.lectureType;
                     // Check logic: For future ranges, targetDate is future, so this gets all current records.
                     // For current range, targetDate is today.
-                    return d <= targetDate && subj === info.title && type === info.type && a.attended;
+                    // return d <= targetDate && subj === info.title && type === info.type && a.attended;
+                    return d <= startOfDay &&   // ← ALWAYS use TODAY as limit
+                        subj === info.title &&
+                        type === info.type &&
+                        a.attended;
+
                 }).length;
 
                 overallTotal += info.total;
