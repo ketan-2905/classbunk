@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBranches, getDivisions } from '@/app/actions/data';
 import { registerUser } from '@/app/actions/auth';
+import { signupSchema } from '@/zod/signupSchema';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'react-toastify';
 
 // Data Interfaces
 interface Item {
@@ -106,7 +109,8 @@ export default function SignupPage() {
         if (res.success) {
             router.push('/dashboard');
         } else {
-            setServerError(res.error || 'Something went wrong');
+            const errors = JSON.parse(res.error);
+            toast.error(errors[0].message || 'Something went wrong');
         }
 
         setIsSubmitting(false);

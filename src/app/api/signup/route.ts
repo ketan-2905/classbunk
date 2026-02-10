@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
+import { signupSchema } from '@/zod/signupSchema';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_key_change_me');
 
@@ -13,6 +15,15 @@ export async function POST(request: Request) {
             name, email, password, branchId, divisionId, semester, sapId, rollNo, subDivisionId,
             electiveChoice1, electiveChoice2
         } = formData;
+
+        const result = signupSchema.safeParse(formData);
+        console.log(formData);
+
+        console.log(result.error);
+
+        if (!result.success) {
+            return NextResponse.json({ success: false, error: result.error.message }, { status: 400 });
+        }
 
         // Check exists
         const existingUser = await prisma.user.findFirst({

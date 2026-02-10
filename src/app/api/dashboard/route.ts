@@ -184,6 +184,10 @@ export async function GET(request: Request) {
             const projectedTotals = isCurrent
                 ? currentProjectedTotals
                 : await calculateProjectedTotal(user.id, semStartDate, range.end);
+            // const projectedTotals = key === "Defaulter 1" ? await calculateProjectedTotal(user.id, semStartDate, range.end)
+            //     : key === "Defaulter 2" ? await calculateProjectedTotal(user.id, ranges.defaulter1.end, range.end)
+            //     : key === "Final" ? await calculateProjectedTotal(user.id, semStartDate, range.end)
+            //     : currentProjectedTotals;
 
             const computed = computeStats(projectedTotals, range.end, isCurrent);
             responseStats[key] = computed.stats;

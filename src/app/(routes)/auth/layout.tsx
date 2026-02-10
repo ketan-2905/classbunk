@@ -1,4 +1,7 @@
+"use client"
 import React from 'react';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -12,6 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="relative z-10 w-full max-w-md animate-fade-in-up">
                 {children}
             </div>
+            <ToastContainer position="top-right" />
         </div>
     );
 }

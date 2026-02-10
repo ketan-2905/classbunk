@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { getDashboardData, toggleAttendance } from '@/app/actions/dashboard';
 import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/api-client';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -88,6 +89,11 @@ export default function DashboardPage() {
         await loadData();
     };
 
+    const handleLogout = async () => {
+        await apiClient.post('/logout');
+        router.push('/auth/login');
+    };
+
     if (loading) {
         // ... loading state ...
         return (
@@ -108,13 +114,17 @@ export default function DashboardPage() {
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Dashboard</h1>
                     <p className="text-zinc-500 text-sm">Your attendance at a glance</p>
                 </div>
-                <button
-                    onClick={refreshDashboard}
-                    disabled={syncing}
-                    className="p-2 rounded-full bg-zinc-900/50 border border-white/10 hover:bg-zinc-800 transition-colors disabled:opacity-50"
-                >
-                    <RefreshCw className={`w-5 h-5 text-sky-400 ${syncing ? 'animate-spin' : ''}`} />
-                </button>
+
+                <div className='flex justify-center items-center gap-2'>
+                    <button
+                        onClick={refreshDashboard}
+                        disabled={syncing}
+                        className="p-2 rounded-full bg-zinc-900/50 border border-white/10 hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-5 h-5 text-sky-400 ${syncing ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button onClick={handleLogout} className="p-2 rounded-lg px-4 bg-zinc-900/50 border border-white/10 hover:bg-zinc-800 transition-colors disabled:opacity-50 cursor-pointer">Logout</button>
+                </div>
             </header>
 
             <div className="space-y-8">
