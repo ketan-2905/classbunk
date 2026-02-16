@@ -50,14 +50,41 @@ export async function calculateProjectedTotal(userId: string, startDate: Date, e
         if (e.secondElectiveName) allElectiveNames.add(e.secondElectiveName);
     });
 
-    // Valid Templates
-    const validTemplates = allTemplates.filter(tmpl => {
-        if (tmpl.batch && !tmpl.batch.endsWith(user.subDivisionId)) return false;
+    // Valid Templates: Refined Logic for Electives
+    const candidates = allTemplates.filter(tmpl => {
         if (allElectiveNames.has(tmpl.subject)) {
             return tmpl.subject === user.electiveChoice1 || tmpl.subject === user.electiveChoice2;
         }
         return true;
     });
+
+    const validTemplates: LectureTemplate[] = [];
+    const grouped = new Map<string, LectureTemplate[]>();
+
+    for (const t of candidates) {
+        const key = `${t.subject}-${t.lectureType}`;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key)!.push(t);
+    }
+
+    /* 
+       Refined Batch Logic:
+       - If Specific Match exists (e.g. CV D12), use ONLY that.
+       - If NO Specific Match exists (e.g. AAIA D11 only), use fallback (D11).
+    */
+    for (const [key, group] of grouped.entries()) {
+        const subject = group[0].subject;
+        const isElective = allElectiveNames.has(subject);
+
+        const matches = group.filter(t => !t.batch || t.batch.endsWith(user.subDivisionId));
+
+        if (matches.length > 0) {
+            validTemplates.push(...matches);
+        } else if (isElective) {
+            // Fallback for Elective
+            validTemplates.push(...group);
+        }
+    }
 
     const counts: Record<string, { total: number, title: string, type: LectureType }> = {};
 
@@ -131,14 +158,35 @@ export async function getProjectedSchedule(userId: string, startDate: Date, endD
         if (e.secondElectiveName) allElectiveNames.add(e.secondElectiveName);
     });
 
-    // Valid Templates
-    const validTemplates = allTemplates.filter(tmpl => {
-        if (tmpl.batch && !tmpl.batch.endsWith(user.subDivisionId)) return false;
+    // Valid Templates: Refined Logic for Electives
+    const candidates = allTemplates.filter(tmpl => {
         if (allElectiveNames.has(tmpl.subject)) {
             return tmpl.subject === user.electiveChoice1 || tmpl.subject === user.electiveChoice2;
         }
         return true;
     });
+
+    const validTemplates: LectureTemplate[] = [];
+    const grouped = new Map<string, LectureTemplate[]>();
+
+    for (const t of candidates) {
+        const key = `${t.subject}-${t.lectureType}`;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key)!.push(t);
+    }
+
+    for (const [key, group] of grouped.entries()) {
+        const subject = group[0].subject;
+        const isElective = allElectiveNames.has(subject);
+
+        const matches = group.filter(t => !t.batch || t.batch.endsWith(user.subDivisionId));
+
+        if (matches.length > 0) {
+            validTemplates.push(...matches);
+        } else if (isElective) {
+            validTemplates.push(...group);
+        }
+    }
 
     const schedule: { date: string, type: string, subject: string, startTime: string }[] = [];
 

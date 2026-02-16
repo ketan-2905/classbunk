@@ -19,27 +19,15 @@ export async function syncUserSchedule(userId: string) {
     // Dates
     const semStartDate = new Date(Date.UTC(2026, 0, 27));
     const today = new Date();
+    // Look ahead 2 days? Or just today? Original logic was +2.
     const loopLimit = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 2));
 
-    // OPTIMIZATION: Incremental Sync
-    const lastAttendance = await prisma.attendance.findFirst({
-        where: { userId: user.id },
-        include: { lectureInstance: true },
-        orderBy: { lectureInstance: { date: 'desc' } }
-    });
+    // FULL SYNC ENFORCED (User Request: "Count from the start")
+    // We removed the incremental sync optimization to ensure that if a user changes electives
+    // or if a subject was missed in the past, it gets backfilled correctly.
+    // relying on DB `skipDuplicates` to handle performance.
 
     let currentDate = new Date(semStartDate);
-
-    if (lastAttendance) {
-        const lastDate = new Date(lastAttendance.lectureInstance.date);
-        const lastDateUtc = new Date(Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate()));
-
-        if (lastDateUtc >= loopLimit) {
-            return { success: true };
-        }
-        currentDate = lastDateUtc;
-    }
-
 
     // Holidays
     const calendar = await prisma.academicCalendar.findFirst({ where: { year: "2025 - 2026" } });
@@ -82,28 +70,53 @@ export async function syncUserSchedule(userId: string) {
     console.log("SYNC DEBUG: Known Electives:", Array.from(allElectiveNames));
     console.log("SYNC DEBUG: User Choices:", user.electiveChoice1, user.electiveChoice2);
 
-    // Valid Templates for User (Batch Check + Elective Check)
-    const validTemplates = allTemplates.filter(tmpl => {
-        // 1. Batch Check
-        if (tmpl.batch && !tmpl.batch.endsWith(user.subDivisionId)) return false;
-
-        // 2. Elective Check
+    // Valid Templates: Refined Logic to avoid duplicates
+    const candidates = allTemplates.filter(tmpl => {
         if (allElectiveNames.has(tmpl.subject)) {
-            // It is an elective subject. User must have chosen it.
-            const isUserChoice = tmpl.subject === user.electiveChoice1 || tmpl.subject === user.electiveChoice2;
-            return isUserChoice;
+            return tmpl.subject === user.electiveChoice1 || tmpl.subject === user.electiveChoice2;
         }
-
-        return true; // Core subject
+        return true;
     });
+
+    const validTemplates: LectureTemplate[] = [];
+    const grouped = new Map<string, LectureTemplate[]>();
+
+    for (const t of candidates) {
+        // Group by Subject + LectureType (e.g. "CV-PR", "AAIA-TH")
+        // We evaluate per subject-type: "Which batch should I attend for CV PR?"
+        const key = `${t.subject}-${t.lectureType}`;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key)!.push(t);
+    }
+
+    for (const [key, group] of grouped.entries()) {
+        const subject = group[0].subject;
+        const isElective = allElectiveNames.has(subject);
+
+        // Find Exact Batch Matches for this User
+        // Match = No Batch (Whole Class) OR EndsWith(UserBatch)
+        const matches = group.filter(t => !t.batch || t.batch.endsWith(user.subDivisionId));
+
+        if (matches.length > 0) {
+            // Case A: We have specific sessions for this user. Use ONLY them.
+            // This eliminates "CV PR D11" if "CV PR D12" exists and user is D12.
+            validTemplates.push(...matches);
+        } else {
+            // Case B: No specific sessions.
+            // If Elective -> Fallback: User MUST attend one of the others.
+            // (e.g. AAIA D11 only -> User D12 must attend).
+            if (isElective) {
+                validTemplates.push(...group);
+            }
+            // If Core -> Strictly excluded.
+        }
+    }
 
     console.log(`SYNC DEBUG: User ${user.subDivisionId}. Found ${allTemplates.length} total tmpl, ${validTemplates.length} valid matches.`);
 
 
     // Generate Expected Instances
     const instancesToCreate: { lectureTemplateId: string; date: Date; status: LectureStatus }[] = [];
-
-    // Iterate Dates
 
     let loops = 0;
     while (currentDate <= loopLimit && loops < 365) {
