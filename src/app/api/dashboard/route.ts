@@ -70,27 +70,66 @@ export async function GET(request: Request) {
             let overallAttended = 0;      // Actual Present (DB)
             let overallConductedSoFar = 0; // Baseline Total (Current)
 
+            // 1. Calculate Adjustments (Extra/Ignored) per Subject
+            const adjustments: Record<string, number> = {};
+
+            // Exceptions logic:
+            // isIgnored: Remove from Total.
+            // isExtra: Add to Total.
+
+            // Limit exceptions to targetDate
+            const relevantExceptions = user.attendances.filter(a => {
+                const d = new Date(a.lectureInstance.date);
+                // Check subject existence to define key, although user.attendances should have it included
+                return d <= targetDate && (a.isIgnored || a.isExtra);
+            });
+
+            relevantExceptions.forEach(a => {
+                const key = `${a.lectureInstance.lectureTemplate.subject}-${a.lectureInstance.lectureTemplate.lectureType}`;
+                if (!adjustments[key]) adjustments[key] = 0;
+
+                if (a.isIgnored) adjustments[key]--;
+                if (a.isExtra) adjustments[key]++;
+            });
+
             const subjects = Object.entries(totals).map(([key, info]: [string, any]) => {
-                // Actual attendance from DB up to targetDate (Though usually we only have up to 'now')
+                // Actual attendance (Filtered by !isIgnored)
                 const attendedCount = user.attendances.filter(a => {
                     const d = new Date(a.lectureInstance.date);
                     const subj = a.lectureInstance.lectureTemplate.subject;
                     const type = a.lectureInstance.lectureTemplate.lectureType;
-                    // Check logic: For future ranges, targetDate is future, so this gets all current records.
-                    // For current range, targetDate is today.
-                    // return d <= targetDate && subj === info.title && type === info.type && a.attended;
-                    return d <= startOfDay &&   // ← ALWAYS use TODAY as limit
+
+                    return d <= startOfDay &&   // ALWAYS use TODAY as limit for "Actuals"
+                        !a.isIgnored &&         // EXCLUDE Ignored
                         subj === info.title &&
                         type === info.type &&
                         a.attended;
 
                 }).length;
 
-                overallTotal += info.total;
+                // Adjust Totals
+                const adjustment = adjustments[key] || 0;
+                const adjustedTotal = Math.max(0, info.total + adjustment);
+
+                overallTotal += adjustedTotal;
                 overallAttended += attendedCount;
 
+                // ConductedSoFar Adjustment (Past/Current only)
                 const currentInfo = currentProjectedTotals[key];
-                const conductedSoFar = currentInfo ? currentInfo.total : 0;
+
+                const pastExceptions = user.attendances.filter(a => {
+                    const d = new Date(a.lectureInstance.date);
+                    const k = `${a.lectureInstance.lectureTemplate.subject}-${a.lectureInstance.lectureTemplate.lectureType}`;
+                    return d <= startOfDay && k === key && (a.isIgnored || a.isExtra);
+                });
+                let pastAdj = 0;
+                pastExceptions.forEach(a => {
+                    if (a.isIgnored) pastAdj--;
+                    if (a.isExtra) pastAdj++;
+                });
+
+                const baseConducted = currentInfo ? currentInfo.total : 0;
+                const conductedSoFar = Math.max(0, baseConducted + pastAdj);
                 overallConductedSoFar += conductedSoFar;
 
                 // Stats Calculation
@@ -100,32 +139,25 @@ export async function GET(request: Request) {
 
                 if (isCurrent) {
                     // Standard "Current Status" Logic
-                    const margin = Math.floor((attendedCount / 0.75) - info.total);
+                    const margin = Math.floor((attendedCount / 0.75) - adjustedTotal);
 
-                    // Deficit Calculation: 
-                    // Previously: Math.ceil(3 * info.total - 4 * attendedCount) -> "Recovery Steps"
-                    // New (User Requested): Math.ceil(0.75 * info.total) - attendedCount -> "Current Shortfall"
-                    const required = Math.ceil(0.75 * info.total);
+                    const required = Math.ceil(0.75 * adjustedTotal);
                     const deficit = required - attendedCount;
 
                     safeBunks = margin > 0 ? margin : 0;
                     mustAttend = deficit > 0 ? deficit : 0;
-                    // % of Conducted
-                    percentage = info.total > 0 ? ((attendedCount / info.total) * 100) : 100;
+                    // % of Conducted (Adjusted)
+                    percentage = adjustedTotal > 0 ? ((attendedCount / adjustedTotal) * 100) : 100;
                 } else {
                     // Future "Assumption" Logic
-                    // Assumption: User attends ALL remaining lectures.
-                    const remaining = Math.max(0, info.total - conductedSoFar);
+                    const remaining = Math.max(0, adjustedTotal - conductedSoFar);
                     const maxPossiblePresent = attendedCount + remaining;
-                    const requiredFor75 = Math.ceil(0.75 * info.total);
+                    const requiredFor75 = Math.ceil(0.75 * adjustedTotal);
 
-                    // Safe Bunks = "How many can I skip from the remaining?"
-                    // = (Max Possible) - (Required)
                     const safetyMargin = maxPossiblePresent - requiredFor75;
 
                     safeBunks = safetyMargin > 0 ? safetyMargin : 0;
 
-                    // If safetyMargin is negative, it means impossible to reach 75% even with 100% future attendance.
                     mustAttend = safetyMargin < 0 ? -safetyMargin : 0;
 
                     // Percentage to show: Users usually want "Current Real Rate"
@@ -136,7 +168,7 @@ export async function GET(request: Request) {
                 return {
                     title: info.title,
                     type: info.type,
-                    total: info.total,
+                    total: adjustedTotal,
                     present: attendedCount,
                     percentage,
                     safeBunks,

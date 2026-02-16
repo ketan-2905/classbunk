@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     RefreshCw, CheckCircle, XCircle, Clock,
     AlertTriangle, BookOpen, GraduationCap, Calendar, History, Info,
-    ChevronLeft, ChevronRight
+    ChevronLeft, ChevronRight, Trash2, Plus, X
 } from 'lucide-react';
 import { getDashboardData, toggleAttendance } from '@/app/actions/dashboard';
 import { useRouter } from 'next/navigation';
@@ -20,15 +20,18 @@ export default function DashboardPage() {
     const [statView, setStatView] = useState('current');
     const [sidebarView, setSidebarView] = useState<'subjects' | 'bunk'>('subjects');
 
-    // ... loadData and useEffect (same as before) ...
+    // Add Lecture Modal State
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [availableLectures, setAvailableLectures] = useState<any[]>([]);
+    const [modalLoading, setModalLoading] = useState(false);
+
     const loadData = async () => {
         try {
             const d = new Date();
             const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            const res = await getDashboardData(todayStr);
+            const res = await getDashboardData(todayStr); // We always fetch 'current' stats, but can navigate history
             if (res.success) {
                 console.log("Dashboard Data", res.data);
-
                 setData(res.data);
             } else if (res.error === "User not found") {
                 router.push('/auth/login');
@@ -57,9 +60,7 @@ export default function DashboardPage() {
     };
 
     useEffect(() => {
-        // Optimistic load for speed
         loadData();
-        // Background sync
         refreshDashboard();
     }, []);
 
@@ -70,25 +71,89 @@ export default function DashboardPage() {
     };
 
     const handleToggle = async (attendanceId: string, currentStatus: boolean, isHistory = false) => {
+        // Optimistic Update
         const newData = { ...data };
+        const updateLec = (lectures: any[]) => {
+            const l = lectures?.find((x: any) => x.attendanceId === attendanceId);
+            if (l) l.attended = !currentStatus;
+        };
 
-        // Update in Schedule (if exists)
-        if (newData.schedule) {
-            const lecture = newData.schedule.find((s: any) => s.attendanceId === attendanceId);
-            if (lecture) lecture.attended = !currentStatus;
-        }
-
-        // Update in History
+        if (newData.schedule) updateLec(newData.schedule);
         if (newData.history) {
-            newData.history.forEach((d: any) => {
-                const hLec = d.lectures.find((l: any) => l.attendanceId === attendanceId);
-                if (hLec) hLec.attended = !currentStatus;
-            });
+            newData.history.forEach((d: any) => updateLec(d.lectures));
         }
-
         setData(newData);
+
         await toggleAttendance(attendanceId, !currentStatus);
-        await loadData();
+        await loadData(); // Reload to get correct stats
+    };
+
+    const handleRemoveLecture = async (lecture: any) => {
+        if (!confirm(`Are you sure you want to remove ${lecture.subject} from your schedule? This will mark it as ignored.`)) return;
+
+        try {
+            const res = await fetch('/api/schedule/manage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'remove',
+                    date: view === 'today' ? new Date().toISOString().split('T')[0] : historyDate,
+                    lectureInstanceId: lecture.id // In dashboard data, id usually refers to instanceId
+                })
+            });
+            if (res.ok) {
+                await loadData();
+            } else {
+                alert("Failed to remove lecture");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error removing lecture");
+        }
+    };
+
+    const openAddModal = async () => {
+        setShowAddModal(true);
+        setModalLoading(true);
+        const targetDate = view === 'today' ? new Date().toISOString().split('T')[0] : historyDate;
+        try {
+            const res = await fetch(`/api/schedule/available?date=${targetDate}`);
+            const json = await res.json();
+            if (json.success) {
+                setAvailableLectures(json.templates);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    const handleAddLecture = async (templateId: string) => {
+        setModalLoading(true);
+        const targetDate = view === 'today' ? new Date().toISOString().split('T')[0] : historyDate;
+        try {
+            const res = await fetch('/api/schedule/manage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'add',
+                    date: targetDate,
+                    lectureTemplateId: templateId
+                })
+            });
+            if (res.ok) {
+                setShowAddModal(false);
+                await loadData();
+            } else {
+                alert("Failed to add lecture");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error adding lecture");
+        } finally {
+            setModalLoading(false);
+        }
     };
 
     const handleLogout = async () => {
@@ -98,17 +163,14 @@ export default function DashboardPage() {
 
     const currentMap = useMemo(() => {
         const map: Record<string, number> = {};
-
         data?.rangeSubjectStats?.['current']?.forEach((s: any) => {
             const key = `${s.title}-${s.type}`;
             map[key] = s.total;
         });
-
         return map;
     }, [data?.rangeSubjectStats]);
 
     if (loading) {
-        // ... loading state ...
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
@@ -220,18 +282,28 @@ export default function DashboardPage() {
                     {/* Main Feed */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Feed Logic */}
-                        <div className="flex items-center gap-4 bg-zinc-900/50 p-1 rounded-xl w-fit border border-white/5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4 bg-zinc-900/50 p-1 rounded-xl w-fit border border-white/5">
+                                <button
+                                    onClick={() => setView('today')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'today' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                >
+                                    Today's Schedule
+                                </button>
+                                <button
+                                    onClick={() => setView('history')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'history' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                >
+                                    Attendance History
+                                </button>
+                            </div>
+
+                            {/* Add Class Button - Available in both views (Context-sensitive) */}
                             <button
-                                onClick={() => setView('today')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'today' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                onClick={openAddModal}
+                                className="flex items-center gap-2 px-4 py-2 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-xl hover:bg-sky-500/20 transition-colors text-sm font-bold"
                             >
-                                Today's Schedule
-                            </button>
-                            <button
-                                onClick={() => setView('history')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'history' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
-                            >
-                                Attendance History
+                                <Plus className="w-4 h-4" /> Add Class
                             </button>
                         </div>
 
@@ -247,7 +319,12 @@ export default function DashboardPage() {
                                     </div>
                                 ) : (
                                     data?.schedule?.map((lecture: any) => (
-                                        <LectureCard key={lecture.id} lecture={lecture} onToggle={handleToggle} />
+                                        <LectureCard
+                                            key={lecture.id}
+                                            lecture={lecture}
+                                            onToggle={handleToggle}
+                                            onRemove={handleRemoveLecture}
+                                        />
                                     ))
                                 )}
                             </div>
@@ -292,7 +369,12 @@ export default function DashboardPage() {
                                                 </span>
                                             </div>
                                             {dayData.lectures.map((lecture: any) => (
-                                                <LectureCard key={lecture.attendanceId} lecture={lecture} onToggle={(id: string, status: boolean) => handleToggle(id, status, true)} />
+                                                <LectureCard
+                                                    key={lecture.attendanceId}
+                                                    lecture={lecture}
+                                                    onToggle={(id: string, status: boolean) => handleToggle(id, status, true)}
+                                                    onRemove={handleRemoveLecture}
+                                                />
                                             ))}
                                         </div>
                                     );
@@ -453,13 +535,71 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Add Lecture Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-zinc-900 rounded-2xl border border-white/10 w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Plus className="w-5 h-5 text-sky-400" />
+                                Add Lecture
+                            </h3>
+                            <button onClick={() => setShowAddModal(false)} className="p-2 text-zinc-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-4 overflow-y-auto min-h-[200px] space-y-2">
+                            {modalLoading ? (
+                                <div className="flex justify-center py-8">
+                                    <div className="w-8 h-8 rounded-full border-2 border-sky-500/30 border-t-sky-500 animate-spin" />
+                                </div>
+                            ) : availableLectures.length === 0 ? (
+                                <div className="text-center py-8 text-zinc-500">
+                                    No lectures found for this day.
+                                </div>
+                            ) : (
+                                availableLectures.map((tmpl) => (
+                                    <button
+                                        key={tmpl.id}
+                                        onClick={() => handleAddLecture(tmpl.id)}
+                                        className="w-full text-left p-3 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-sky-500/30 transition-all group"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="font-bold text-white">{tmpl.subject}</div>
+                                                <div className="text-xs text-zinc-400 flex items-center gap-2 mt-1">
+                                                    <span className={`px-1.5 rounded text-[10px] font-bold ${tmpl.type === 'PR' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                        {tmpl.type}
+                                                    </span>
+                                                    <span>{tmpl.startTime} - {tmpl.endTime}</span>
+                                                </div>
+                                                <div className="text-[10px] text-zinc-500 mt-1">
+                                                    Batch: {tmpl.batch || 'All'} • Room: {tmpl.room || 'N/A'}
+                                                </div>
+                                            </div>
+                                            {tmpl.isMyBatch && (
+                                                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-medium">
+                                                    Your Batch
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }
 
-function LectureCard({ lecture, onToggle }: { lecture: any, onToggle: any }) {
+function LectureCard({ lecture, onToggle, onRemove }: { lecture: any, onToggle: any, onRemove: any }) {
     return (
-        <div className="glass-panel p-4 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-colors">
+        <div className="glass-panel p-4 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-colors relative">
             <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold
                     ${lecture.type === 'PR' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}
@@ -476,18 +616,28 @@ function LectureCard({ lecture, onToggle }: { lecture: any, onToggle: any }) {
                 </div>
             </div>
 
-            <button
-                onClick={() => onToggle(lecture.attendanceId, lecture.attended)}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all flex items-center gap-2
-                    ${lecture.attended
-                        ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/20'
-                        : 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/20'
-                    }
-                `}
-            >
-                {lecture.attended ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                <span className="hidden lg:inline">{lecture.attended ? "Attended" : "Missed"}</span>
-            </button>
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={() => onRemove(lecture)}
+                    className="p-2 text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                    title="Remove Class"
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+
+                <button
+                    onClick={() => onToggle(lecture.attendanceId, lecture.attended)}
+                    className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all flex items-center gap-2
+                        ${lecture.attended
+                            ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/20'
+                            : 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/20'
+                        }
+                    `}
+                >
+                    {lecture.attended ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                    <span className="hidden lg:inline">{lecture.attended ? "Attended" : "Missed"}</span>
+                </button>
+            </div>
         </div>
     );
 }

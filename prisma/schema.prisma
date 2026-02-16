@@ -214,6 +214,9 @@ model Attendance {
 
   attended Boolean // true = present, false = bunked
 
+  isIgnored Boolean @default(false) // User removed this lecture
+  isExtra   Boolean @default(false) // User added this lecture manually
+
   markedAt DateTime @default(now())
 
   user            User            @relation(fields: [userId], references: [id])
