@@ -92,9 +92,10 @@ export async function calculateProjectedTotal(userId: string, startDate: Date, e
     // Loop
     while (currentDate <= endDate) {
         const dateKey = formatDateKey(currentDate);
-        const weekday = jsDayToDbDay(currentDate.getUTCDay());
+        const jsDay = currentDate.getUTCDay();
+        const weekday = jsDayToDbDay(jsDay);
 
-        if (!holidays.has(dateKey)) {
+        if (jsDay !== 0 && !holidays.has(dateKey)) {
             const dailyTemplates = validTemplates.filter(t => t.weekday === weekday);
             for (const tmpl of dailyTemplates) {
                 const key = `${tmpl.subject}-${tmpl.lectureType}`;
@@ -193,9 +194,10 @@ export async function getProjectedSchedule(userId: string, startDate: Date, endD
     let currentDate = new Date(startDate);
     while (currentDate <= endDate) {
         const dateKey = formatDateKey(currentDate);
-        const weekday = jsDayToDbDay(currentDate.getUTCDay());
+        const jsDay = currentDate.getUTCDay();
+        const weekday = jsDayToDbDay(jsDay);
 
-        if (!holidays.has(dateKey)) {
+        if (jsDay !== 0 && !holidays.has(dateKey)) {
             const dailyTemplates = validTemplates.filter(t => t.weekday === weekday);
             // Sort by time
             dailyTemplates.sort((a, b) => a.startTime.localeCompare(b.startTime));

@@ -122,9 +122,11 @@ export async function syncUserSchedule(userId: string) {
     while (currentDate <= loopLimit && loops < 365) {
         loops++;
         const dateKey = formatDateKey(currentDate);
-        const weekday = jsDayToDbDay(currentDate.getUTCDay());
+        const jsDay = currentDate.getUTCDay();
+        const weekday = jsDayToDbDay(jsDay);
 
-        if (holidays.has(dateKey)) {
+        // Skip absolute Sundays (jsDay 0 = Sunday) and Explicit Holidays
+        if (jsDay === 0 || holidays.has(dateKey)) {
             currentDate.setUTCDate(currentDate.getUTCDate() + 1);
             continue;
         }
